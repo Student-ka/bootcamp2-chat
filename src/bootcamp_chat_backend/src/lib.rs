@@ -38,6 +38,14 @@ fn add_chat_msg(msg: String, user2: Principal) {
         panic!("Anonymous Principal!")
     }
 
+    let is_user_registred: bool = USERS.with_borrow(|users: &HashMap<Principal, UserData>| {
+        users.contains_key(&user1)
+    });
+
+    if !is_user_registred {
+        panic!("Not registred!")
+    }
+
     let mut principals = [user1, user2];
     principals.sort();
 
