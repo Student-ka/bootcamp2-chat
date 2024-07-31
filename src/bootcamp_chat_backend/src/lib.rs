@@ -19,7 +19,21 @@ fn register(nick: String) {
     }
 
     USERS.with_borrow_mut(|user: &mut HashMap<Principal, UserData>| {
-        user.insert(user, UserData::new(nick))
+        users.insert(user, UserData::new(nick))
+    });
+}
+
+#[ic_cdk::query]
+fn get_users(){
+    USERS.with_borrow(|users: &HashMap<Principal, UserData>|{
+        users.clone()
+    });
+}
+
+#[ic_cdk::query]
+fn get_user(user:Principal) ->Option(UserData)
+    USERS.with_borrow(|users: &HashMap<Principal, UserData>|{
+        users.get(&user).
     });
 }
 
