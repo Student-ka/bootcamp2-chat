@@ -2,17 +2,32 @@ use std::{cell::RefCell, collections::HashMap};
 
 use candid::Principal;
 use ic_cdk::caller;
+use user::UserData;
+
+pub mod user;
 
 thread_local! {
     static NOTES: RefCell<HashMap<Principal, Vec<String>>> = RefCell::default();
     static CHAT: RefCell<HashMap<[Principal; 2], Vec<String>>> = RefCell::default();
+    static USERS: RefCell<HashMap<Principal, UserData>> = RefCell::default();
+}
+
+#[ic_cdk::update]
+fn register(nick: String) {
+    if user == Principal::anonymous() {
+        panic!("Anonymous Principal!")
+    }
+
+    USERS.with_borrow_mut(|user: &mut HashMap<Principal, UserData>| {
+        user.insert(user, UserData::new(nick))
+    });
 }
 
 #[ic_cdk::query]
 fn get_chat(user1: Principal, user2: Principal) -> Option<Vec<String>> {
     let mut principals = [user1, user2];
     principals.sort();
-    CHAT.with_borrow(|chats|  chats.get(&principals).cloned())
+    CHAT.with_borrow(|chats| chats.get(&principals).cloned())
 }
 
 #[ic_cdk::update]
@@ -39,7 +54,7 @@ fn add_chat_msg(msg: String, user2: Principal) {
 
 #[ic_cdk::query]
 fn get_notes(user: Principal) -> Option<Vec<String>> {
-    NOTES.with_borrow(|notes|  notes.get(&user).cloned())
+    NOTES.with_borrow(|notes| notes.get(&user).cloned())
 }
 
 #[ic_cdk::update]
