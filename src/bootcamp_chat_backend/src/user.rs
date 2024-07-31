@@ -1,4 +1,3 @@
-
 use canidid::CandidType;
 #[derive(Clone)]
 

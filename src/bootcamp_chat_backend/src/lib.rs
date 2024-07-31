@@ -7,41 +7,34 @@ use user::UserData;
 pub mod user;
 
 thread_local! {
-    static NOTES: RefCell<HashMap<Principal, Vec<String>>> = RefCell::default();
     static CHAT: RefCell<HashMap<[Principal; 2], Vec<String>>> = RefCell::default();
     static USERS: RefCell<HashMap<Principal, UserData>> = RefCell::default();
 }
 
 #[ic_cdk::update]
 fn register(nick: String) {
+    let user = caller();
+
     if user == Principal::anonymous() {
         panic!("Anonymous Principal!")
     }
 
-    USERS.with_borrow_mut(|user: &mut HashMap<Principal, UserData>| {
-        users.insert(user, UserData::new(nick))
-    });
+    USERS.with_borrow_mut(|users| users.insert(user, UserData::new(nick)));
 }
 
 #[ic_cdk::query]
-fn get_users(){
-    USERS.with_borrow(|users: &HashMap<Principal, UserData>|{
-        users.clone()
-    });
+fn get_users() -> HashMap<Principal, UserData> {
+    USERS.with_borrow(|users| users.clone())
 }
 
 #[ic_cdk::query]
-fn get_user(user:Principal) ->Option(UserData)
-    USERS.with_borrow(|users: &HashMap<Principal, UserData>|{
-        users.get(&user).
-    });
+fn get_user(user: Principal) -> Option<UserData> {
+    USERS.with_borrow(|users| users.get(&user).cloned())
 }
 
 #[ic_cdk::query]
-fn get_chat(user1: Principal, user2: Principal) -> Option<Vec<String>> {
-    let mut principals = [user1, user2];
-    principals.sort();
-    CHAT.with_borrow(|chats| chats.get(&principals).cloned())
+fn get_chat(chat_path: [Principal; 2]) -> Option<Vec<String>> {
+    CHAT.with_borrow(|chats| chats.get(&chat_path).cloned())
 }
 
 #[ic_cdk::update]
@@ -52,12 +45,10 @@ fn add_chat_msg(msg: String, user2: Principal) {
         panic!("Anonymous Principal!")
     }
 
-    let is_user_registred: bool = USERS.with_borrow(|users: &HashMap<Principal, UserData>| {
-        users.contains_key(&user1)
-    });
+    let is_user_registered = USERS.with_borrow(|users| users.contains_key(&user1));
 
-    if !is_user_registred {
-        panic!("Not registred!")
+    if !is_user_registered {
+        panic!("Not registered!")
     }
 
     let mut principals = [user1, user2];
@@ -70,30 +61,6 @@ fn add_chat_msg(msg: String, user2: Principal) {
             chat_msgs.push(msg);
         } else {
             chats.insert(principals, vec![msg]);
-        }
-    })
-}
-
-#[ic_cdk::query]
-fn get_notes(user: Principal) -> Option<Vec<String>> {
-    NOTES.with_borrow(|notes| notes.get(&user).cloned())
-}
-
-#[ic_cdk::update]
-fn add_note(note: String) {
-    let user = caller();
-
-    if user == Principal::anonymous() {
-        panic!("Anonymous Principal!")
-    }
-
-    NOTES.with_borrow_mut(|notes| {
-        let mut_notes = notes.get_mut(&user);
-
-        if let Some(notes_vec) = mut_notes {
-            notes_vec.push(note);
-        } else {
-            notes.insert(user, vec![note]);
         }
     })
 }
