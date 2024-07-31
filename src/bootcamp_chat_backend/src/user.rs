@@ -1,6 +1,6 @@
-use canidid::CandidType;
-#[derive(Clone)]
+use candid::CandidType;
 
+#[derive(Clone, CandidType)]
 pub struct UserData {
     nickname: String,
     avatar_url: Option<String>,
